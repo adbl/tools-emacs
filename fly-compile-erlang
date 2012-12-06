@@ -1,4 +1,6 @@
 #!/usr/bin/env escript
+
+%% Put this file in .emacs.d
 -export([main/1]).
 
 main([File_Name]) ->
