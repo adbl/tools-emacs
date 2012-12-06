@@ -67,14 +67,21 @@
 ;; (makes emacs vertical scroll less "jumpy" than defaults)
 (setq mouse-wheel-scroll-amount '(3 ((shift) . 3)))
 
-;; default nodename for distel (= also for erlang-shell-connect-to-node)
-(defun my-dave ()
+
+
+
+;; David & Andreas hackathon solution:
+
+;; Transforms long host name like "Davids-MacBook-Pro-7.local"
+;; "to Davids-MacBook-Pro-7" (removes everthing behind the first dot)
+;; Why? -> Erlang remote shell requires this kind of short host name.
+(defun short-host-name ()
   (string-match "[^\.]+" system-name)
   (substring system-name (match-beginning 0) (match-end 0))
   )
-(setq erl-nodename-cache (intern (concat "dev" "@" (my-dave))))
-
-;; connect to remote node (block 1)
+;; default nodename for distel (= also for erlang-shell-connect-to-node)
+(setq erl-nodename-cache (intern (concat "dev" "@" (short-host-name))))
+;; connect to remote node
 (defun erlang-shell-connect-to-node ()
   (interactive)
   (let* ((inferior-erlang-machine-options
