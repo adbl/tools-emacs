@@ -5,21 +5,24 @@
 (setq whitespace-style
       (quote (face tabs trailing lines-trail lines whitespace-line)))
 
+;; ========= erlang mode ===========
 
 (add-to-list
    'load-path
        (car (file-expand-wildcards "/usr/lib/erlang/lib/tools-*/emacs")))
 
-;(setq load-path (cons  "/usr/lib/erlang/lib/tools-2.6.6.6/emacs"
-;      load-path))
 (setq erlang-root-dir "/usr/lib/erlang")
 (setq exec-path (cons "/usr/lib/erlang/lib/bin" exec-path))
 (require 'erlang-start)
 
-;(add-to-list 'load-path "~/git/distel/elisp")
-;done by wrangler
-;(require 'distel)
-;(distel-setup)
+;; ========== Wrangler =============
+
+(add-to-list 'load-path
+  "/usr/lib/erlang/lib/wrangler-1.0/elisp")
+(add-to-list 'load-path "~/git/distel/elisp")
+(require 'wrangler)
+
+(erlang-wrangler-on)
 
 (custom-set-variables
   ;; custom-set-variables was added by Custom.
@@ -28,7 +31,8 @@
   ;; If there is more than one, they won't work right.
  '(global-whitespace-mode t)
  '(inhibit-startup-screen t)
- '(wrangler-search-paths (apply (function append) (map (quote list) (quote file-expand-wildcards) (quote ("/home/cjk/git/campanja/dev" "/home/cjk/git/campanja/dev/apps/*/src" "/home/cjk/git/campanja/dev/apps/*/include" "/home/cjk/git/campanja/dev/apps/*/test"))))))
+ ;;'(wrangler-search-paths (apply (function append) (map (quote list) (quote file-expand-wildcards) (quote ("/home/cjk/git/campanja/dev" "/home/cjk/git/campanja/dev/apps/*/src" "/home/cjk/git/campanja/dev/apps/*/include" "/home/cjk/git/campanja/dev/apps/*/test"))))))
+ )
 (custom-set-faces
   ;; custom-set-faces was added by Custom.
   ;; If you edit it by hand, you could mess it up, so be careful.
@@ -78,18 +82,37 @@
   (split-window-horizontally)
   (balance-windows))
 
-;; ========== Wrangler =============
-
-
-(add-to-list 'load-path
-  "/usr/lib/erlang/lib/wrangler-1.0/elisp")
-(add-to-list 'load-path "~/git/distel/elisp")
-(require 'wrangler)
-
 ;; ========== Magit! =============
 (require 'magit)
 
 (setq compile-command "make -k -C ../../..")
+
+;; ========== Erlang Mode =============
+;; erlang mode for yaws
+(add-to-list 'auto-mode-alist '("\\.yaws$" . erlang-mode))
+
+;; default nodename for distel (= also for erlang-shell-connect-to-node)
+(setq erl-nodename-cache (intern (concat "dev" "@" system-name)))
+
+;; connect to remote node
+(defun erlang-shell-connect-to-node ()
+  (interactive)
+  (let* ((inferior-erlang-machine-options
+          (list "-sname" "emacs"
+                "-remsh" (format "%s" erl-nodename-cache))))
+    (erlang-shell-display)))
+
+(eval-after-load 'erlang
+  '(progn
+     (defun load-extra-erlang-mode-bindings ()
+       (define-key erlang-mode-map (kbd "C-c C-d M") 'erlang-man-function)
+       (define-prefix-command 'ctrl-c-ctrl-z-keymap)
+       (define-key erlang-mode-map (kbd "C-c C-z") 'ctrl-c-ctrl-z-keymap)
+       (define-key ctrl-c-ctrl-z-keymap (kbd "f") 'erlang-shell-with-flags)
+       (define-key ctrl-c-ctrl-z-keymap (kbd "z") 'erlang-shell-display)
+       (define-key ctrl-c-ctrl-z-keymap (kbd "k")
+         'erlang-shell-connect-to-node))
+     (add-hook 'erlang-mode-hook 'load-extra-erlang-mode-bindings)))
 
 ;; ========== Key Bindings =======
 
