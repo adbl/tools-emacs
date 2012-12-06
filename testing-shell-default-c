@@ -1,0 +1,3 @@
+#!/bin/sh
+erl -sname d1 -remsh "dev@Davids-MacBook-Pro-7" -run shell_default c $*
+
