@@ -68,7 +68,12 @@
 (setq mouse-wheel-scroll-amount '(3 ((shift) . 3)))
 
 
-
+;;(add-hook 'erlang-mode-hook
+;;	  (lambda ()
+;;	    ;; when starting an Erlang shell in Emacs, default in the node name
+;;	    (setq inferior-erlang-machine-options '("-sname" "emacs"))
+;;	    ;; add Erlang functions to an imenu menu
+;;	    (imenu-add-to-menubar "imenu")))
 
 ;; David & Andreas hackathon solution:
 
