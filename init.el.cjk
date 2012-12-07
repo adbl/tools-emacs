@@ -1,0 +1,142 @@
+;(add-to-list 'load-path "~/git/ErlangRigEmacsConfig")
+;(require 'my-config)
+(require 'whitespace)
+;; make whitespace-mode use just basic coloring
+(setq whitespace-style
+      (quote (face tabs trailing lines-trail lines whitespace-line)))
+
+;; ========= erlang mode ===========
+
+(add-to-list
+   'load-path
+       (car (file-expand-wildcards "/usr/lib/erlang/lib/tools-*/emacs")))
+
+(setq erlang-root-dir "/usr/lib/erlang")
+(setq exec-path (cons "/usr/lib/erlang/lib/bin" exec-path))
+(require 'erlang-start)
+
+;; ========== Wrangler =============
+
+(add-to-list 'load-path
+  "/usr/lib/erlang/lib/wrangler-1.0/elisp")
+(add-to-list 'load-path "~/git/distel/elisp")
+(require 'wrangler)
+
+(erlang-wrangler-on)
+
+(custom-set-variables
+  ;; custom-set-variables was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(global-whitespace-mode t)
+ '(inhibit-startup-screen t)
+ ;;'(wrangler-search-paths (apply (function append) (map (quote list) (quote file-expand-wildcards) (quote ("/home/cjk/git/campanja/dev" "/home/cjk/git/campanja/dev/apps/*/src" "/home/cjk/git/campanja/dev/apps/*/include" "/home/cjk/git/campanja/dev/apps/*/test"))))))
+ )
+(custom-set-faces
+  ;; custom-set-faces was added by Custom.
+  ;; If you edit it by hand, you could mess it up, so be careful.
+  ;; Your init file should contain only one such instance.
+  ;; If there is more than one, they won't work right.
+ '(magit-diff-add ((t (:foreground "darkgreen"))))
+ '(magit-diff-del ((t (:foreground "darkred"))))
+ '(magit-diff-file-header ((t nil)))
+ '(magit-whitespace-warning-face ((t nil)))
+ '(whitespace-tab ((((class color) (background light)) (:background "green" :foreground "lightgray")))))
+
+(setq-default indent-tabs-mode nil)
+(set-default-font "Monospace 9")
+;(setq-default show-trailing-whitespace t)
+
+
+;; ========== Enable Line and Column Numbering ==========
+
+;; Show line-number in the mode line
+(line-number-mode 1)
+
+;; Show column-number in the mode line
+(column-number-mode 1)
+
+;; ========== MONKY! =============
+
+(add-to-list 'load-path "~/git/monky")
+(require 'monky)
+
+;; By default monky spawns a seperate hg process for every command.
+;; This will be slow if the repo contains lot of changes.
+;; if `monky-process-type' is set to cmdserver then monky will spawn a single
+;; cmdserver and communicate over pipe.
+;; Available only on mercurial versions 1.9 or higher
+
+(setq monky-process-type 'cmdserver)
+
+(global-set-key (kbd "<f9>") 'monky-status)
+
+(server-start)
+
+(set-scroll-bar-mode 'nil)
+
+;;; I want a key to open the current buffer all over the screen.
+(defun all-over-the-screen ()
+  (split-window-horizontally)
+  (split-window-horizontally)
+  (balance-windows))
+
+;; ========== Magit! =============
+(require 'magit)
+
+(setq compile-command "make -k -C ../../..")
+
+;; ========== Erlang Mode =============
+;; erlang mode for yaws
+(add-to-list 'auto-mode-alist '("\\.yaws$" . erlang-mode))
+
+;; default nodename for distel (= also for erlang-shell-connect-to-node)
+(setq erl-nodename-cache (intern (concat "dev" "@" system-name)))
+
+;; connect to remote node
+(defun erlang-shell-connect-to-node ()
+  (interactive)
+  (let* ((inferior-erlang-machine-options
+          (list "-sname" "emacs"
+                "-remsh" (format "%s" erl-nodename-cache))))
+    (erlang-shell-display)))
+
+(eval-after-load 'erlang
+  '(progn
+     (defun load-extra-erlang-mode-bindings ()
+       (define-key erlang-mode-map (kbd "C-c C-d M") 'erlang-man-function)
+       (define-prefix-command 'ctrl-c-ctrl-z-keymap)
+       (define-key erlang-mode-map (kbd "C-c C-z") 'ctrl-c-ctrl-z-keymap)
+       (define-key ctrl-c-ctrl-z-keymap (kbd "f") 'erlang-shell-with-flags)
+       (define-key ctrl-c-ctrl-z-keymap (kbd "z") 'erlang-shell-display)
+       (define-key ctrl-c-ctrl-z-keymap (kbd "k")
+         'erlang-shell-connect-to-node))
+     (add-hook 'erlang-mode-hook 'load-extra-erlang-mode-bindings)))
+
+;; ========== Key Bindings =======
+
+(global-set-key (kbd "<f8>") 'magit-status)
+(global-set-key (kbd "<f7>") 'recompile)
+(global-set-key (kbd "<f6>") 'erl-reload-modules)
+
+
+(global-set-key [(control next)] 'other-window)
+(global-set-key [(control prior)]
+                (lambda ()
+                  (interactive)
+                  (other-window -1)))
+(global-set-key (kbd "<f4>")
+                (lambda ()
+                  (interactive)
+                  (delete-other-windows)
+                  (split-window-horizontally)
+                  (split-window-horizontally)
+                  (other-window -1)
+                  (split-window-vertically)
+                  (balance-windows)
+                  (other-window 2)))
+
+;; Printing
+(setq ps-paper-type (quote a4))
+
